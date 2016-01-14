@@ -28,23 +28,19 @@ var Post = db.define('Post', {
   },
   postid: {
     type: Sequelize.INTEGER,
-    allowNull: true,
-    defaultValue: false
+    allowNull: true
   },
   title: {
     type: Sequelize.STRING,
-    allowNull: true,
-    defaultValue: false
+    allowNull: true
   },
   description: {
     type: Sequelize.STRING,
-    allowNull: true,
-    defaultValue: false
+    allowNull: true
   },
   link: {
     type: Sequelize.STRING,
-    allowNull: true,
-    defaultValue: false
+    allowNull: true
   },
   like_count: {
     type: Sequelize.INTEGER,
@@ -74,8 +70,7 @@ var User = db.define('User', {
   email: Sequelize.STRING,
   image_url: {
     type: Sequelize.STRING,
-    allowNull: true,
-    defaultValue: false
+    allowNull: true
   },
   type: {
     type: Sequelize.INTEGER,
@@ -115,50 +110,52 @@ var Like = db.define('Like', {
     timestamps: false
 });
 
+var Post_Tag = db.define('Post_Tag', {
+  }, {
+    timestamps: false
+});
+
 // set up one to many between user and post
 User.hasMany(Post);
 Post.belongsTo(User);
 
-// Post.hasOne(User, {foreignKey: 'post_user_id'});
-// User.belongsTo(Post, {foreignKey: 'post_user_id'});
-
 // // set up many to many model for post and user on like
-// User.belongsToMany(Post, {
-//     as: ['relationship'],
-//     through: [Like],
-//     foreignKey: 'user_id'
-// });
-// Post.belongsToMany(User, {
-//     as: ['relationship2'],
-//     through: [Like],
-//     foreignKey: 'post_id'
-// });
+User.belongsToMany(Post, {
+    as: 'relationship',
+    through: 'Like'
+});
+Post.belongsToMany(User, {
+    as: 'relationship2',
+    through: 'Like'
+});
 
 // // set up many to many model for post and tag on post_tag
-// Post.belongsToMany(Tag, {
-//     as: ['relationship'],
-//     through: [Post_Tag],
-//     foreignKey: 'post_id'
-// });
-// Tag.belongsToMany(Post, {
-//     as: ['relationship2'],
-//     through: [Post_Tag],
-//     foreignKey: 'tag_id'
-// });
+Post.belongsToMany(Tag, {
+    as: 'relationship',
+    through: 'Post_Tag'
+});
+Tag.belongsToMany(Post, {
+    as: 'relationship2',
+    through: 'Post_Tag'
+});
 
 
-Post.sync()
-.then(function() {
-  return User.sync();
-})
+User.sync()
 .then(function() {
   return Tag.sync();
 })
 .then(function() {
+  return Post.sync();
+})
+.then(function() {
   return Like.sync();
+})
+.then(function() {
+  return Post_Tag.sync();
 });
 
-exports.Post = Post;
 exports.User = User;
 exports.Tag = Tag;
+exports.Post = Post;
 exports.Like = Like;
+exports.Like = Post_Tag;
