@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 
-var database = process.env.DATABASE || 'cratedig';
+var database = process.env.DATABASE || 'test2';
 var dbUser = process.env.DBUSER || 'root';
 var dbPass = process.env.DBPASS || "student";
 var dbHost = process.env.DBHOST || 'localhost';
@@ -10,12 +10,14 @@ var db = new Sequelize(database, dbUser, dbPass, {
   host: dbHost
 });
 
+
 var Post = db.define('Post', {
   // used to define product or response
-  post_type: {
-    type: Sequelize.INTEGER,
+  isAResponse: {
+    type: Sequelize.BOOLEAN,
     allowNull: false,
-    defaultValue: 0
+    //JUST FOR NOW
+    defaultValue: false
   },
   postid: {
     type: Sequelize.INTEGER,
@@ -84,9 +86,10 @@ var User = db.define('User', {
   email: Sequelize.STRING,
   image_url: {
     type: Sequelize.STRING,
-    allowNull: true
+    allowNull: true,
+    defaultValue: false
   },
-  type: {
+  type : {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
@@ -101,10 +104,12 @@ var User = db.define('User', {
     allowNull: false,
     defaultValue: 0
   }
+}, {
+  timestamps: false
 });
 
 var Tag = db.define('Tag', {
-  tag_name: Sequelize.STRING,
+  name: Sequelize.STRING,
   count: {
     type: Sequelize.INTEGER,
     allowNull: false,
@@ -125,26 +130,28 @@ var Post_Tag = db.define('Post_Tag', {
     timestamps: false
 });
 
-// set up one to many between user and post
 User.hasMany(Post);
 Post.belongsTo(User);
 
 // // set up many to many model for post and user on like
 User.belongsToMany(Post, {
+    as: 'posts',
     through: 'Like'
 });
 Post.belongsToMany(User, {
+    as: 'users',
     through: 'Like'
 });
 
 // // set up many to many model for post and tag on post_tag
 Post.belongsToMany(Tag, {
+    as: 'tags',
     through: 'Post_Tag'
 });
 Tag.belongsToMany(Post, {
+    as: 'posts',
     through: 'Post_Tag'
 });
-
 
 User.sync()
 .then(function() {
