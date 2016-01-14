@@ -4,24 +4,15 @@ var Sequelize = require('sequelize');
 var database = process.env.DATABASE || 'cratedig';
 var dbUser = process.env.DBUSER || 'root';
 var dbPass = process.env.DBPASS || "student";
-var dbHost = process.env.DBHOST || 'localhost'
+var dbHost = process.env.DBHOST || 'localhost';
 
 var db = new Sequelize(database, dbUser, dbPass, {
   host: dbHost
 });
 
 var Post = db.define('Post', {
-  id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  // id_user: {
-  //   type: Sequelize.INTEGER,
-  //   references: 'User',
-  //   referencesKey: 'id'
-  // },
-  type: {
+  // used to define product or response
+  post_type: {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
@@ -38,7 +29,35 @@ var Post = db.define('Post', {
     type: Sequelize.STRING,
     allowNull: true
   },
-  link: {
+  url: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  provider_url: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  thumbnail_width: {
+    type: Sequelize.INTEGER,
+    allowNull: true
+  },
+  thumbnail_height: {
+    type: Sequelize.INTEGER,
+    allowNull: true
+  },
+  thumbnail_url: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  version: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  provider_name: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  type: {
     type: Sequelize.STRING,
     allowNull: true
   },
@@ -60,11 +79,6 @@ var Post = db.define('Post', {
 });
 
 var User = db.define('User', {
-  id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
   username: Sequelize.STRING,
   fullname: Sequelize.STRING,
   email: Sequelize.STRING,
@@ -90,12 +104,7 @@ var User = db.define('User', {
 });
 
 var Tag = db.define('Tag', {
-  id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  name: Sequelize.STRING,
+  tag_name: Sequelize.STRING,
   count: {
     type: Sequelize.INTEGER,
     allowNull: false,
@@ -111,6 +120,7 @@ var Like = db.define('Like', {
 });
 
 var Post_Tag = db.define('Post_Tag', {
+  tag_name: Sequelize.STRING
   }, {
     timestamps: false
 });
@@ -121,21 +131,17 @@ Post.belongsTo(User);
 
 // // set up many to many model for post and user on like
 User.belongsToMany(Post, {
-    as: 'relationship',
     through: 'Like'
 });
 Post.belongsToMany(User, {
-    as: 'relationship2',
     through: 'Like'
 });
 
 // // set up many to many model for post and tag on post_tag
 Post.belongsToMany(Tag, {
-    as: 'relationship',
     through: 'Post_Tag'
 });
 Tag.belongsToMany(Post, {
-    as: 'relationship2',
     through: 'Post_Tag'
 });
 
