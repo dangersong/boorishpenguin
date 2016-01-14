@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 
-var database = process.env.DATABASE || 'pithypersimmons';
+var database = process.env.DATABASE || 'cratedig';
 var dbUser = process.env.DBUSER || 'root';
 var dbPass = process.env.DBPASS || "student";
 var dbHost = process.env.DBHOST || 'localhost'
@@ -10,87 +10,104 @@ var db = new Sequelize(database, dbUser, dbPass, {
   host: dbHost
 });
 
-var User = db.define('User', {
-  username: Sequelize.STRING,
-  name: Sequelize.STRING,
-  name_last: Sequelize.STRING,
-  name_first: Sequelize.STRING,
-  isTeacher: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-  points: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-    defaultValue: 0
-  },
-  email: Sequelize.STRING,
-  picture: Sequelize.STRING
-}, {
-  timestamps: false
-});
-
-var Tag = db.define('Tag', {
-  name: Sequelize.STRING
-  // count: {
-  //   type: Sequelize.INTEGER,
-  //   allowNull: false,
-  //   defaultValue: 0
-  // } 
-}, {
-  timestamps: false
-});
-
-var Course = db.define('Course', {
-  name: Sequelize.STRING
-}, {
-  timestamps: false
-});
-
 var Post = db.define('Post', {
-  title: Sequelize.STRING,
-  text: Sequelize.STRING,
-  isAnAnswer: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  points: {
+  // id_user: {
+  //   type: Sequelize.INTEGER,
+  //   references: 'User',
+  //   referencesKey: 'id'
+  // },
+  type: {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
   },
-  //When is this touched and shouldn't it point to the
-  //question not the responses?
-  responses: {
+  postid: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+    defaultValue: false
+  },
+  title: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    defaultValue: false
+  },
+  description: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    defaultValue: false
+  },
+  link: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    defaultValue: false
+  },
+  like_count: {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
   },
-  //Why is this necessary what does it do
-  isAnswered: {
-    type: Sequelize.BOOLEAN,
+  response_count: {
+    type: Sequelize.INTEGER,
     allowNull: false,
-    defaultValue: false
+    defaultValue: 0
   },
-  //Good means the admin has checked it off
-  isGood: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-  //What's this mean?
-  isClosed: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-  createdAt: {
+  created: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.fn('NOW')
   },
-  updatedAt: Sequelize.DATE
+  updated: Sequelize.DATE
+});
+
+var User = db.define('User', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  username: Sequelize.STRING,
+  fullname: Sequelize.STRING,
+  email: Sequelize.STRING,
+  image_url: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    defaultValue: false
+  },
+  type: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  post_like_count: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  resp_like_count: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  }
+});
+
+var Tag = db.define('Tag', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  name: Sequelize.STRING,
+  count: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  }
+}, {
+  timestamps: false
 });
 
 var Like = db.define('Like', {
@@ -98,39 +115,50 @@ var Like = db.define('Like', {
     timestamps: false
 });
 
-Course.belongsToMany(User, {
-  through: 'CourseUser'
-});
-User.belongsToMany(Course, {
-  through: 'CourseUser'
-});
-
+// set up one to many between user and post
 User.hasMany(Post);
 Post.belongsTo(User);
-Tag.hasMany(Post);
-Post.belongsTo(Tag);
-Course.hasMany(Post);
-Post.belongsTo(Course);
-Post.hasMany(Post, {as: 'Responses', foreignKey: 'QuestionId'});
 
-Post.belongsToMany(User, {as: 'Vote', through: 'Like'});
-User.belongsToMany(Post, {through: 'Like'});
+// Post.hasOne(User, {foreignKey: 'post_user_id'});
+// User.belongsTo(Post, {foreignKey: 'post_user_id'});
 
-User.sync()
+// // set up many to many model for post and user on like
+// User.belongsToMany(Post, {
+//     as: ['relationship'],
+//     through: [Like],
+//     foreignKey: 'user_id'
+// });
+// Post.belongsToMany(User, {
+//     as: ['relationship2'],
+//     through: [Like],
+//     foreignKey: 'post_id'
+// });
+
+// // set up many to many model for post and tag on post_tag
+// Post.belongsToMany(Tag, {
+//     as: ['relationship'],
+//     through: [Post_Tag],
+//     foreignKey: 'post_id'
+// });
+// Tag.belongsToMany(Post, {
+//     as: ['relationship2'],
+//     through: [Post_Tag],
+//     foreignKey: 'tag_id'
+// });
+
+
+Post.sync()
+.then(function() {
+  return User.sync();
+})
 .then(function() {
   return Tag.sync();
-})
-.then(function() {
-  return Course.sync();
-})
-.then(function() {
-  return Post.sync();
 })
 .then(function() {
   return Like.sync();
 });
 
-exports.User = User;
-exports.Course = Course;
-exports.Tag = Tag;
 exports.Post = Post;
+exports.User = User;
+exports.Tag = Tag;
+exports.Like = Like;
